@@ -1,41 +1,34 @@
 import numpy as np
 
-A = np.array([[3,18,-6],[-5,-23,31],[9,65,13]])
-b = np.array([9,7,2])
+A = np.array([[9,-3,1],[-3,2,0],[1,0,4]])
+b = np.array([5,3,2])
 
-A1 = np.array([[1,5,3,4],[1,8,15,16],[1,12,33,42],[1,9,24,48]]) 
-b1 = np.array([29,95,217,211])
+A1 = np.array([[1,2,5,7],[2,5,15,17],[5,15,54,56],[7,17,56,68]])
+b1 = np.array([46,123,419,469])
 
-def solve_system_via_lu(A, b):
-    L, U = LU(A)
-    y = solve_lower_traingular_system(L, b)
+def solve_system_via_cholesky(A, b):
+    U = cholesky(A)
+    y = solve_lower_traingular_system(U.T, b)
     x = solve_upper_traingular_system(U, y)
     print("\nAx:\n", np.matmul(A,x), "\nb\n", b)
 
-def LU(A):
+def cholesky(A):
     n = A.shape[0]
-    ones = np.ones(n)
-    L = np.zeros((n,n))
-    U = np.diag(ones)
+    U = np.zeros((n,n))
 
     for i in range(n):
-        for j in range(i+1):
-            scal_prod = 0
-            for k in range(j):
-                scal_prod += L[i,k] * U[k,j]
-            L[i,j] = A[i,j] - scal_prod
-        
-        for j in range(i+1,n):
+        scal_prod = 0
+        for k in range(i):
+            scal_prod += U[k,i] ** 2
+        U[i,i] = np.sqrt(A[i,i] - scal_prod)
+        for j in range(i+1, n):
             scal_prod = 0
             for k in range(i):
-                scal_prod += L[i,k] * U[k,j]
-            U[i,j] = (A[i,j] - scal_prod) / L[i,i]
-
-    print("A:\n", A, "\n")
-    print("L:\n", L, "\n")
-    print("U:\n", U, "\n")
-
-    return L, U
+                scal_prod += U[k,i]*U[k,j]
+            U[i,j] = (A[i,j] - scal_prod) / U[i,i]
+    
+    print(U)
+    return U
 
 def solve_lower_traingular_system(L, b):
     n = L.shape[0]
@@ -58,10 +51,10 @@ def solve_upper_traingular_system(U, b):
         scal_prod = 0
         for k in range(i+1, n):
             scal_prod += U[i,k] * x[k]
-        x[i] = (b[i] - scal_prod) / U[i,i]
+        x[i] = (b[i] - scal_prod) / U[i,i] 
 
     print("Final Solution 'x': ", x)
     
     return x
 
-solve_system_via_lu(A, b)
+solve_system_via_cholesky(A1, b1)
